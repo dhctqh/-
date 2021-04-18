@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.glc.demo.user.dao.IssueDao">
+    <!-- 创建issue -->
+    <insert id="insertIssue" parameterType="com.glc.demo.user.entity.IssueEntity">
+         INSERT INTO `issue`.`issue` (
+                `issueId`,
+                `title`,
+                `founder`,
+                `iCreateTime`,
+                `reviser`,
+                `issueStatus`,
+                `planTime`,
+                `actualTime`,
+                `userId1`,
+                `userId2`,
+                `type`,
+                `grade`,
+                `version`,
+                `step`,
+                `plan`
+            )
+            VALUES(
+                  #{issueId},                
+                  #{title},
+                  #{founder},
+                  #{iCreateTime},
+                  #{reviser},
+                  #{issueStatus},
+                  #{planTime},
+                  #{actualTime},
+                  #{userId1},
+                  #{userId2},
+                  #{type},
+                  #{grade},
+                  #{version},
+                  #{step},
+                  #{plan}
+           );
+    </insert>
+    
+    <!-- 删除issue -->
+    <delete id="deleteIssue"  parameterType="java.lang.Integer">
+       DELETE FROM issue 
+          WHERE issueId=${issueId};
+    </delete>
+ 
+    <!-- 查询所有issue -->
+    <select id="listIssue" resultType="com.glc.demo.user.entity.IssueEntity" parameterType="java.util.Map">
+        SELECT issueId, title, founder, iCreateTime, reviser, issueStatus, planTime, actualTime
+          FROM issue;
+    </select>
+ 
+    <!-- 查询issue(根据issueId,issueStatus,founder,reviser,iCreateTime时间段，actualTime时间段)（大于，&gt；小于，&lt;） -->
+    <select id="queryIssue" resultType="com.glc.demo.user.entity.IssueEntity" parameterType="java.lang.Integer">
+          SELECT *
+          FROM issue
+          <where>
+           <if test="issueId != null and issueId != ''">
+             AND issueId LIKE CONCAT(CONCAT("%",#{issueId}),"%")     
+            </if>
+            <if test="issueStatus != null and issueStatus != ''">
+              AND issueStatus LIKE "%"#{issueStatus}"%"
+            </if>
+             <if test="founder != null and founder != ''">
+              AND founder LIKE "%"#{founder}"%"
+            </if>
+            <if test="reviser != null and reviser != ''">
+              AND reviser LIKE "%"#{reviser}"%"  
+            </if>
+            <if test="iCreateTime1 != null">
+              AND iCreateTime &gt;= #{iCreateTime1}
+            </if>
+            <if test="iCreateTime2 != null">
+              AND iCreateTime &lt;= #{iCreateTime2}
+            </if>
+             <if test="actualTime1 != null">
+              AND actualTime &gt;= #{actualTime1}
+            </if>
+            <if test="actualTime2 != null">
+              AND actualTime &lt;= #{actualTime2}
+            </if>             
+          </where>        
+    </select>
+ 
+    <!-- 修改issue -->
+    <update id="updateIssue" parameterType="com.glc.demo.user.entity.IssueEntity">   
+       UPDATE issue
+       <trim prefix="set" suffixOverrides=",">
+       <if test="title!=null and title!=''">title=#{title},</if>
+       <if test="founder!=null and founder!=''">founder=#{founder},</if>
+       <if test="iCreateTime!=null">iCreateTime=#{iCreateTime},</if>
+       <if test="reviser!=null and reviser!=''">reviser=#{reviser},</if>
+       <if test="issueStatus!=null and issueStatus!=''">issueStatus=#{issueStatus},</if>
+       <if test="planTime!=null">planTime=#{planTime},</if>
+       <if test="actualTime!=null">actualTime=#{actualTime},</if>
+       <if test="type!=null and type!=''">type=#{type},</if>
+       <if test="grade!=null and grade!=''">grade=#{grade},</if>
+       <if test="version!=null and version!=''">version=#{version},</if>
+       <if test="step!=null and step!=''">step=#{step},</if>
+       <if test="plan!=null and plan!=''">plan=#{plan},</if>
+       </trim>
+       WHERE issueId=#{issueId}
+    </update>
+    
+    
+    <!-- 关闭issue -->
+    <update id="closeIssue" parameterType="com.glc.demo.user.entity.IssueEntity">   
+       UPDATE issue
+     	SET issueStatus=#{issueStatus},actualTime=#{actualTime}
+       WHERE issueId=#{issueId}
+    </update>
+    
+    <!-- 获取issue报表 -->
+    <select id="formIssue" resultType="com.glc.demo.user.entity.IssueEntity" parameterType="java.lang.Integer">
+        SELECT distinct t.userId1,t.founder,t1.crtCnt,t2.slvCnt,t3.tttCnt,ROUND(t3.tttCnt/t2.slvCnt*100,0)as percent 
+          FROM issue t 
+          LEFT JOIN
+          (select founder, count(issueId) crtCnt from issue group by founder) t1
+          ON t.founder = t1.founder
+          LEFT JOIN
+          (select reviser, count(issueId) slvCnt from issue  group by reviser) t2
+          ON t.founder = t2.reviser
+          LEFT JOIN
+          (select reviser, count(issueId) tttCnt from issue  where issueStatus='已关闭' group by reviser) t3
+          ON t.founder = t3.reviser
+          <where>
+            <if test="founder!=null">
+              AND t.founder LIKE "%"#{founder}"%"
+            </if>
+            <if test="userId1!=null">
+              AND t.userId1 LIKE "%"#{userId1}"%"
+            </if>
+          </where>
+    </select>
+      
+</mapper>

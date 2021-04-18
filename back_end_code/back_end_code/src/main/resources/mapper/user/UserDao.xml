@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.glc.demo.user.dao.UserDao">
+    <!-- 注册 -->
+    <insert id="register" parameterType="com.glc.demo.user.entity.UserEntity">
+         INSERT INTO `issue`.`user` (
+                `userId`,
+                `name`,
+                `email`,
+                `uCreateTime`,
+                `identity`,
+                `status`,
+                `password`
+            )
+            VALUES(
+                  #{userId},                
+                  #{name},
+                  #{email},
+                  #{uCreateTime},
+                  #{identity},
+                  #{status},
+                  #{password}
+           );
+    </insert>
+    
+    <!-- 删除user -->
+    <delete id="deleteUser"  parameterType="java.lang.Integer">
+       DELETE FROM user 
+          WHERE userId=${userId};
+    </delete>
+    
+    <!-- 查询所有user -->
+    <select id="listUser" resultType="com.glc.demo.user.entity.UserEntity" parameterType="java.util.Map">
+        SELECT *
+          FROM user
+    </select> 
+
+    <!-- 查询user(根据userId,name)-->
+    <select id="queryUser" resultType="com.glc.demo.user.entity.UserEntity" parameterType="java.lang.Integer">
+        SELECT *
+          FROM user
+          <where>
+            <if test="userId!=null and name!=null">
+            userId LIKE "%"#{userId}"%" and name LIKE "%"#{name}"%";
+            </if>
+          </where>
+    </select>
+ 
+    <!-- 修改user -->
+    <update id="updateUser" parameterType="com.glc.demo.user.entity.UserEntity">
+       UPDATE user 
+       <trim prefix="set" suffixOverrides=",">
+         <if test="name!=null and name!=''">name=#{name},</if>
+         <if test="email!=null and email!=''">email=#{email},</if>
+         <if test="name!=null and name!=''">name=#{name},</if>
+         <if test="uCreateTime!=null">uCreateTime=#{uCreateTime},</if>
+         <if test="identity!=null and identity!=''">identity=#{identity},</if>
+         <if test="status!=null and status!=''">status=#{status},</if>
+         <if test="password!=null and password!=''">password=#{password},</if>
+       </trim>
+       WHERE userId=${userId}
+    </update>
+          
+    <!-- 登录 -->
+    <!--  <select id="login"  parameterType="java.lang.Integer">
+       SELETE name 
+          FROM user
+          WHERE userId=#{userId} and password=#{password};
+    </select> -->
+    
+</mapper>
