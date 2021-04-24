@@ -18,7 +18,8 @@
     </div>
     <el-form
       status-icon
-      ref="ruleForm"
+      
+      
       label-width="100px"
       class="login-box"
       style="
@@ -38,14 +39,16 @@
       <el-row :gutter="10" style="margin-top: 5%">
         <div class="header1">
           <el-form
+          :rules="rules"
+          :model="ruleForm"
             status-icon
-            ref="ruleForm"
+            ref="ruleForm2"
             label-width="100px"
             class="demo-ruleForm"
           >
-            <el-form-item label="系统ID：" prop="signId">
+            <el-form-item label="系统ID：" prop="saveId">
               <el-input
-                v-model="saveId"
+                v-model="ruleForm.saveId"
                 maxLength="30"
                 placeholder="请输入ID"
                 style="width: 300px"
@@ -53,7 +56,7 @@
             </el-form-item>
             <el-form-item label="姓名：" prop="saveName">
               <el-input
-                v-model="saveName"
+                v-model="ruleForm.saveName"
                 maxLength="20"
                 placeholder="请输入姓名"
                 style="width: 300px"
@@ -61,7 +64,7 @@
             </el-form-item>
             <el-form-item label="邮箱：" prop="saveEmail">
               <el-input
-                v-model="saveEmail"
+                v-model="ruleForm.saveEmail"
                 maxLength="30"
                 placeholder="请输入邮箱"
                 style="width: 300px"
@@ -69,7 +72,7 @@
             </el-form-item>
             <el-form-item label="输入密码：" prop="savePassword">
               <el-input
-                v-model="savePassword"
+                v-model="ruleForm.savePassword"
                 maxLength="30"
                 placeholder="请输入密码"
                 show-password
@@ -78,7 +81,7 @@
             </el-form-item>
             <el-form-item label="确认密码：" prop="save2Password">
               <el-input
-                v-model="save2Password"
+                v-model="ruleForm.save2Password"
                 maxLength="30"
                 placeholder="请确认密码"
                 show-password
@@ -94,7 +97,7 @@
           >
             <el-button
               type="primary"
-              @click="postuser"
+              @click="postuser()"
               style="margin-right: 30px"
               >确认</el-button
             >
@@ -112,32 +115,85 @@
 import axios from "axios";
 export default {
   data() {
+    var patt1 = new RegExp(
+        "^(?![A-Za-z0-9]+$)(?![a-z0-9\\W]+$)(?![A-Za-z\\W]+$)(?![A-Z0-9\\W]+$)[a-zA-Z0-9\\W]{8,}$"
+      );
+      var patt2 = new RegExp(
+        "^([a-zA-Z0-9]+[_|\_|\.]?)*[a-zA-Z0-9]+@([a-zA-Z0-9]+[_|\_|\.]?)*[a-zA-Z0-9]+\.[a-zA-Z]{2,3}$");
+     var validateSaveEmail = (rule, value, callback)=>{
+         
+          if (!patt2.test(value)) {
+            callback(new Error('3-18个英文、数字、点、减号、下划线组成'));
+          } 
+         callback();
+         }
+         var validateSavePassword = (rule, value, callback)=>{
+        
+       
+          if (!patt1.test(value)) {
+            callback(new Error('大写字母、小写字母、数字、特殊符号、不小于八位'));
+          } 
+            callback();
+      
+         }
+         var validateSaveSave2Password = (rule, value, callback)=>{
+         
+       
+          if (value!=this.ruleForm.savePassword) {
+            callback(new Error('输入密码和确认密码不一致'));
+          } 
+            callback();
+        }
+         
     return {
-      input: "",
+      ruleForm:{
       saveId: "",
       saveName: "",
       saveEmail: "",
       savePassword: "",
-      save2Password: "",
+      save2Password: ""},
       imgSrc: require("../../static/rough.jpg"),
+      rules: {
+          saveId: [
+            { required: true, message: '请输入用户id', trigger: 'blur' },
+            { min: 3, max: 5, message: '长度在 1 到 20 个字符', trigger: 'blur' }
+          ],
+          saveName: [
+            { required: true, message: '请输入用户姓名', trigger: 'blur' },
+            { min: 2, max: 5, message: '长度在 1 到 20 个字符', trigger: 'blur' }
+          ],
+          saveEmail: [
+            { required: true, message: '请输入email', trigger: 'blur' },
+            { validator: validateSaveEmail, trigger: 'blur' }
+          ],
+          savePassword: [
+            { required: true, message: '请输入密码', trigger: 'blur' },
+            { validator: validateSavePassword, trigger: 'blur' }
+          ],
+          save2Password: [
+            { required: true, message: '请输入确认密码', trigger: 'blur' },
+            { validator:  validateSaveSave2Password, trigger: 'blur' }
+          ]
+        }
     };
   },
   methods: {
-    postuser() {
-      var patt1 = new RegExp(
-        "^(?![A-Za-z0-9]+$)(?![a-z0-9\\W]+$)(?![A-Za-z\\W]+$)(?![A-Z0-9\\W]+$)[a-zA-Z0-9\\W]{8,}$"
-      );
-      if (patt1.test(this.savePassword)) {
-        if (this.savePassword != this.save2Password) {
-          alert("确定密码不一致");
-        } else {
-          let data = {
-            userId: this.saveId,
-            password: this.savePassword,
-            name: this.saveName,
-            email: this.saveEmail,
-          };
-          axios
+   postuser() {
+      let data = {
+                userId: this.ruleForm.saveId,
+                name: this.ruleForm.saveName,
+                email: this.ruleForm.saveEmail,
+                password: this.ruleForm.savePassword
+      }
+   
+      this.$refs["ruleForm2"].validate((valid) => {
+          if (!valid) {
+             console.log('error submit!!');
+           
+          }
+          else
+          {
+            axios
             .post("api/user/register", data)
             .then((res) => {
               console.log("res=>", res);
@@ -148,11 +204,12 @@ export default {
               console.log(err);
               alert("注册失败");
             });
-        }
-      } else {
-        alert("密码格式错误");
-      }
-    },
+          }
+        });
+   
+     
+       
+    }
   },
 };
 </script>

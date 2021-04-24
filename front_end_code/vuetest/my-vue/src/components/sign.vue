@@ -19,10 +19,11 @@
     <el-header style="font-size: 100px; margin-top: 5%"
       >欢迎使用事务管理系统 ！</el-header
     >
-
     <el-row :gutter="10" style="margin-top: 5%">
       <div class="header1">
         <el-form
+          :model="ruleForm"
+          :rules="rules"
           status-icon
           ref="ruleForm"
           label-width="100px"
@@ -47,7 +48,7 @@
             style="margin-left: 50px"
           >
             <el-input
-              v-model="signId"
+              v-model="ruleForm.signId"
               maxLength="30"
               placeholder="请输入ID"
               style="width: 230px"
@@ -59,18 +60,18 @@
             style="margin-left: 50px"
           >
             <el-input
-              v-model="signPassword"
+              v-model="ruleForm.signPassword"
               minlength="8"
               maxLength="30"
               placeholder="请输入密码"
-              style="width: 230px; margin-bottom: 30px"
+              style="width: 230px;"
               show-password
             ></el-input>
           </el-form-item>
           <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24"
             ><div
               class="grid-content bg-purple"
-              style="text-align: center; margin-bottom: 20px"
+              style="text-align: center; margin: 20px 0px"
             >
               <el-button
                 type="primary"
@@ -99,40 +100,45 @@ import axios from "axios";
 export default {
   data() {
     return {
+      rules: {
+        signId: [
+          { required: true, message: "请输入用户id", trigger: "blur" },
+        ],
+        signPassword: [
+          { required: true, message: "请输入用户密码", trigger: "blur" },
+        ]
+      },
+      ruleForm:{
       signPassword: "",
-      signId: "",
+      signId: ""},
       imgSrc: require("../../static/rough.jpg"),
     };
   },
   methods: {
+    
     getuser() {
-      var patt1 = new RegExp(
-        "^(?![A-Za-z0-9]+$)(?![a-z0-9\\W]+$)(?![A-Za-z\\W]+$)(?![A-Z0-9\\W]+$)[a-zA-Z0-9\\W]{8,}$"
-      );
-      if (patt1.test(this.signPassword)) {
+    
+   
+      this.$refs["ruleForm"].validate((valid) => {
+          if (!valid) {
+             console.log('error submit!!');
+          }
+          else
+          {
         axios
           .get("/api/user/queryUser?name=", {
             params: {
-              userId: this.signId,
+              userId: this.ruleForm.signId,
             },
           })
           .then((res) => {
             // console.log('ssss');
-
-            if (res.data[0].password == this.signPassword) {
+            if (res.data[0].password == this.ruleForm.signPassword) {
               if (res.data[0].status == "激活") {
                 alert("登录成功");
                 var username1 = res.data[0].name;
-
                 var identity1 = res.data[0].identity;
                 var signid1 = res.data[0].userId;
-                console.log("登录zzzzzzzzzzz");
-                console.log(res.data[0].userId);
-                console.log(res.data[0].name);
-                console.log("登录zzzzzzzzzzz");
-
-                console.log(identity1);
-
                 this.$store.commit("sign", { username1, signid1 });
                 window.sessionStorage.setItem(
                   "signedUsername",
@@ -140,14 +146,8 @@ export default {
                 );
                 window.sessionStorage.setItem("userId", signid1);
                 window.sessionStorage.setItem("email", res.data[0].email);
-                console.log("storezzzzzzzzzzz");
-                console.log(this.$store.state.signId);
-
-                console.log("storezzzzzzzzzzz");
-
                 // var identity1=res.date[0].identity;
                 this.$store.commit("body", identity1);
-
                 this.$router.push("/Helloworld");
                 window.sessionStorage.setItem(
                   "signedidentity1",
@@ -163,11 +163,11 @@ export default {
           .catch((err) => {
             alert("用户不存在或密码错误");
           });
-      } else {
-        alert(
-          "密码格式错误，密码格式：不少于8位，必须包含大小写字母以及特殊符号"
-        );
-      }
+     
+           
+          }
+        });
+      
     },
   },
 };
