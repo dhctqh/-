@@ -156,11 +156,11 @@ export default {
       rules: {
           saveId: [
             { required: true, message: '请输入用户id', trigger: 'blur' },
-            { min: 3, max: 5, message: '长度在 1 到 20 个字符', trigger: 'blur' }
+            { min: 3, max: 30, message: '长度在 3 到 30 个字符', trigger: 'blur' }
           ],
           saveName: [
             { required: true, message: '请输入用户姓名', trigger: 'blur' },
-            { min: 2, max: 5, message: '长度在 1 到 20 个字符', trigger: 'blur' }
+            { min: 2, max: 5, message: '长度在 2 到 5 个字符', trigger: 'blur' }
           ],
           saveEmail: [
             { required: true, message: '请输入email', trigger: 'blur' },
